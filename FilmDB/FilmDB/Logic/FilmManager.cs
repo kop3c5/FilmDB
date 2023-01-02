@@ -14,33 +14,71 @@ namespace FilmDB.Logic
             {
                 context.Add(filmModel);
                 context.SaveChanges();
+                try
+                {
+                    context.Films.Add(filmModel);
+                    context.SaveChanges();
+                }
+                catch (System.Exception e)
+                {
+                    filmModel.ID = 0;
+                    context.Films.Add(filmModel);
+                    context.SaveChanges();
+                }
             }
             return this;
         }
 
         public FilmManager RemoveFilm(int id)
         {
+            using (var context = new FilmContext())
+            {
+                FilmModel filmToDelete = context.Films.FirstOrDefault(x => x.ID == id);
+                context.Films.Remove(filmToDelete);
+                context.SaveChanges();
+            }
             return this;
         }
 
-        public FilmManager UpdateFilm(FilmModel filmModel)
+        public void UpdateFilm(FilmModel film)
         {
-            return this;
+            using (var context = new FilmContext())
+            {
+                context.Films.Update(film);
+                context.SaveChanges();
+            }
         }
 
         public FilmManager ChangeTitle(int id, string newTitle)
         {
+            using (var context = new FilmContext())
+            {
+                var film = this.GetFilm(id);
+                if (string.IsNullOrEmpty(newTitle))
+                {
+                    newTitle = "Brak tytułu";
+                }
+                film.Title = newTitle;
+                context.Films.Update(film);
+                context.SaveChanges();
+            }
             return this;
         }
 
-        public FilmManager GetFilm(int id)
+        public FilmModel GetFilm(int id)
         {
-            return null;
+            using (var contex = new FilmContext())
+            {
+                return contex.Films.Single(x => x.ID == id);
+            }
         }
 
         public List<FilmModel> GetFilms()
         {
-            return null;
+            using (var context = new FilmContext())
+            {
+                return context.Films.ToList();
+            }
         }
     }
 }
